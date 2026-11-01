@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Demo Gallery</title>
+<meta name="description" content="Current exhibition, every work to scale, with enquiries on WhatsApp.">
+<meta name="theme-color" content="#ECEAE4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1B19" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="bar glass" id="bar">
+  <a class="brand" href="#" id="brand">Demo Gallery</a>
+  <div class="bar-actions">
+    <button class="pill" id="savedBtn" type="button" aria-pressed="false">Saved <span id="savedCount">0</span></button>
+    <a class="pill pill-solid" id="barEnquire" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  </div>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="intro-where" id="introWhere">Demo Gallery, New Delhi</p>
+    <h1 class="intro-title" id="showTitle">Quiet Geometry</h1>
+    <p class="intro-dates" id="showDates"></p>
+    <p class="intro-lede" id="showLede"></p>
+  </section>
+
+  <section class="wall-section" aria-labelledby="wallHead">
+    <div class="section-head">
+      <h2 id="wallHead">The wall, to scale</h2>
+      <p>Every work at its real size next to the others. The figure is 172 cm tall. Drag or swipe along the wall.</p>
+    </div>
+    <div class="wall" id="wall" tabindex="0" aria-label="Works hung to scale, scrolls sideways">
+      <div class="wall-inner" id="wallInner"></div>
+    </div>
+  </section>
+
+  <section class="works" aria-labelledby="worksHead">
+    <div class="section-head works-head">
+      <h2 id="worksHead">All works</h2>
+      <div class="filters" role="group" aria-label="Filter works" id="filters">
+        <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="chip" data-filter="available" aria-pressed="false">Available</button>
+        <button type="button" class="chip" data-filter="under2" aria-pressed="false">Under ₹2 lakh</button>
+        <button type="button" class="chip" data-filter="saved" aria-pressed="false">Saved</button>
+      </div>
+    </div>
+    <ul class="grid" id="grid"></ul>
+    <p class="empty" id="empty" hidden>Nothing saved yet. Tap the heart on any work to keep it here.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div>
+    <p class="foot-name" id="footName">Demo Gallery</p>
+    <p id="footAddress"></p>
+  </div>
+  <div class="foot-links" id="footLinks"></div>
+  <p class="foot-credit">Built with Walkthrough by <a href="https://www.instagram.com/theartwalk.in/" target="_blank" rel="noopener">The Art Walk</a>. Sample works and artists are fictional.</p>
+</footer>
+
+<!-- Artwork viewer -->
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Artwork viewer" hidden>
+  <div class="v-backdrop" id="vBackdrop"></div>
+  <div class="v-stage" id="vStage"><div class="v-track" id="vTrack"></div></div>
+  <div class="v-top" id="vTop">
+    <button class="icon-btn" id="vClose" type="button" aria-label="Close viewer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <span class="v-count" id="vCount" aria-live="polite"></span>
+    <button class="icon-btn" id="vSave" type="button" aria-pressed="false" aria-label="Save this work">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+    </button>
+  </div>
+
+  <section class="sheet" id="sheet" aria-label="Artwork details">
+    <div class="sheet-drag" id="sheetDrag">
+      <span class="grip" aria-hidden="true"></span>
+      <div class="sheet-peek">
+        <div>
+          <h2 class="s-title" id="sTitle"></h2>
+          <p class="s-artist" id="sArtist"></p>
+        </div>
+        <p class="s-price" id="sPrice"></p>
+      </div>
+    </div>
+    <div class="sheet-body">
+      <div class="s-actions">
+        <a class="btn btn-light" id="sEnquire" href="#" target="_blank" rel="noopener">Ask on WhatsApp</a>
+        <button class="btn btn-line" id="sWall" type="button">See on a wall</button>
+      </div>
+      <dl class="s-facts">
+        <div><dt>Year</dt><dd id="sYear"></dd></div>
+        <div><dt>Medium</dt><dd id="sMedium"></dd></div>
+        <div><dt>Size</dt><dd id="sSize"></dd></div>
+        <div><dt>Status</dt><dd id="sStatus"></dd></div>
+      </dl>
+      <p class="s-note" id="sNote"></p>
+      <button class="btn btn-quiet" id="sShare" type="button">Share this work</button>
+      <p class="s-hint">Double-tap or pinch to look closer. Swipe down to close.</p>
+    </div>
+  </section>
+</div>
+
+<!-- See it on a wall -->
+<div class="room" id="room" role="dialog" aria-modal="true" aria-label="See the work on a wall" hidden>
+  <div class="room-scene" id="roomScene">
+    <div class="room-wall" id="roomWall"></div>
+    <div class="room-floor" id="roomFloor"></div>
+    <img class="room-art" id="roomArt" alt="">
+    <svg class="room-sofa" id="roomSofa" viewBox="0 0 210 85" preserveAspectRatio="none" aria-hidden="true">
+      <rect x="6" y="6" width="198" height="50" rx="12" class="sofa-back"/>
+      <rect x="0" y="34" width="26" height="42" rx="10" class="sofa-arm"/>
+      <rect x="184" y="34" width="26" height="42" rx="10" class="sofa-arm"/>
+      <rect x="20" y="46" width="170" height="28" rx="8" class="sofa-seat"/>
+      <rect x="14" y="74" width="5" height="11" class="sofa-leg"/>
+      <rect x="191" y="74" width="5" height="11" class="sofa-leg"/>
+    </svg>
+    <svg class="room-person" id="roomPerson" viewBox="0 0 50 172" preserveAspectRatio="none" aria-hidden="true">
+      <circle cx="25" cy="12" r="10"/>
+      <path d="M25 24c-10 0-15 6-16 16l-4 52h8l3-34 2 110h7l3-70 3 70h7l2-110 3 34h8l-4-52c-1-10-6-16-16-16z"/>
+    </svg>
+  </div>
+  <div class="room-ui" id="roomUi">
+    <p class="room-caption" id="roomCaption"></p>
+    <div class="swatches" role="group" aria-label="Wall colour" id="swatches">
+      <button type="button" data-wall="#EDEAE3" data-floor="#B89B78" aria-pressed="true">Lime white</button>
+      <button type="button" data-wall="#CFCBC2" data-floor="#9C8364" aria-pressed="false">Warm grey</button>
+      <button type="button" data-wall="#9DAA98" data-floor="#8A6E50" aria-pressed="false">Sage</button>
+      <button type="button" data-wall="#2E3B6E" data-floor="#5B4634" aria-pressed="false">Indigo</button>
+      <button type="button" data-wall="#3A3936" data-floor="#4A3C30" aria-pressed="false">Charcoal</button>
+    </div>
+    <button class="btn btn-solid" id="roomClose" type="button">Done</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="gallery.config.js"></script>
+<script src="data/works.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
