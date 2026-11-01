@@ -1,4 +1,5 @@
-id,title,artist,year,medium,width_cm,height_cm,price_inr,status,image_url,description
-w1,Monsoon Ledger,Ira Malhotra,2025,Oil on canvas,120,150,480000,available,,"Three bands of indigo laid in thin glazes over six weeks of rain."
-w2,"Courtyard, Noon",Kabir Sethi,2024,Gouache on handmade paper,56,76,145000,available,,"From a series of courtyards drawn from memory."
-w3,Bindu IV,Noor Qureshi,2025,Acrylic on canvas,100,100,320000,reserved,,"A single point held at the centre of nine rings."
+id,title,artist,year,medium,width_cm,height_cm,price_inr,status,image_url,description,public,rooms
+w1,Monsoon Ledger,Ira Malhotra,2025,Oil on canvas,120,150,480000,available,,"Three bands of indigo laid in thin glazes over six weeks of rain.",yes,winter-preview
+w2,"Courtyard, Noon",Kabir Sethi,2024,Gouache on handmade paper,56,76,145000,available,,"From a series of courtyards drawn from memory.",yes,
+w3,Bindu IV,Noor Qureshi,2025,Acrylic on canvas,100,100,320000,reserved,,"A single point held at the centre of nine rings.",yes,winter-preview
+w11,Night Register,Meher Bhatt,2026,Oil on linen,110,140,420000,available,,"Finished last month and not yet shown.",no,winter-preview
