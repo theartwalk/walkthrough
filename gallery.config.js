@@ -5,8 +5,17 @@
   pick the artworks tab and "Comma-separated values (.csv)", then paste
   the link here. Leave it empty to show the sample works.
   Column names the Sheet needs are listed in README.md.
+
+  roomsCsvUrl: the "rooms" tab, published the same way, for private viewings.
 */
 window.GALLERY = {
+  // Walkthrough database (admin dashboard). Fill all three to go live; see README.
+  // When these are set, the site reads works and gallery details from the database
+  // and the Sheet settings below are ignored.
+  supabaseUrl: '',         // e.g. 'https://abcdefgh.supabase.co'
+  supabaseKey: '',         // the project's "anon public" key (safe to publish)
+  gallery: '',             // the gallery's slug from add-gallery.sql, e.g. 'dhoomimal'
+
   slug: 'demo',
   name: 'Demo Gallery',
   city: 'New Delhi',
@@ -15,6 +24,7 @@ window.GALLERY = {
   email: 'hello@example.com',
   instagram: 'theartwalk.in',
   sheetCsvUrl: '',
+  roomsCsvUrl: '',         // optional: the "rooms" tab of the same Sheet, published as CSV
   exhibition: {
     title: 'Quiet Geometry',
     dates: 'On view 14 November to 20 December 2026',

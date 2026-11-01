@@ -3,7 +3,11 @@
   'use strict';
 
   const cfg = window.GALLERY || {};
-  let works = (window.SAMPLE_WORKS || []).slice();
+  let works = (window.SAMPLE_WORKS || []).slice();   // the works this page shows
+  let rooms = (window.SAMPLE_ROOMS || []).slice();
+  const roomSlug = (new URLSearchParams(location.search).get('room') || '').trim().toLowerCase();
+  let room = null;          // the private viewing being shown, if any
+  let roomState = 'none';   // none | open | closed | missing
   const $ = (s, r = document) => r.querySelector(s);
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const wide = matchMedia('(min-width: 900px)');
@@ -79,83 +83,8 @@
   const rubber = (over, dim, c = 0.55) => Math.sign(over) * (Math.abs(over) * dim * c) / (dim + c * Math.abs(over));
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-  /* ---------- Generated artwork images (demo only) ---------- */
-  function rng(seed) {
-    let a = seed >>> 0;
-    return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  }
-  function archPath(ctx, x, y, w, h) {
-    const r = w / 2; ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x, y + r);
-    ctx.arc(x + r, y + r, r, Math.PI, 0); ctx.lineTo(x + w, y + h); ctx.closePath();
-  }
-  function softRect(ctx, x, y, w, h, color, f) {
-    ctx.fillStyle = color;
-    for (let i = 0; i < 9; i++) { const e = f * (1 - i / 8); ctx.globalAlpha = 0.13; ctx.fillRect(x - e, y - e, w + 2 * e, h + 2 * e); }
-    ctx.globalAlpha = 0.6; ctx.fillRect(x + f * 0.5, y + f * 0.5, w - f, h - f); ctx.globalAlpha = 1;
-  }
-  function paint(ctx, W, H, art) {
-    const r = rng(art.seed || 1), P = art.palette, u = Math.min(W, H) / 100;
-    const ink = () => P[1 + Math.floor(r() * (P.length - 1))];
-    ctx.fillStyle = P[0]; ctx.fillRect(0, 0, W, H);
-    if (art.kind === 'field') {
-      const n = 2 + Math.floor(r() * 2), m = W * 0.08, total = H * 0.86, gap = H * 0.035, hs = [];
-      let sum = 0; for (let i = 0; i < n; i++) { const v = 0.6 + r(); hs.push(v); sum += v; }
-      let y = H * 0.07;
-      hs.forEach((v, i) => { const h = (total - gap * (n - 1)) * v / sum; softRect(ctx, m, y, W - 2 * m, h, P[1 + (i % (P.length - 1))], u * 2.4); y += h + gap; });
-    } else if (art.kind === 'grid') {
-      const cols = 3 + Math.floor(r() * 3), rows = Math.max(2, Math.round(cols * H / W)), g = u * 1.4;
-      const cw = (W - g * (cols + 1)) / cols, ch = (H - g * (rows + 1)) / rows;
-      for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
-        if (r() < 0.16) continue;
-        ctx.fillStyle = ink(); ctx.globalAlpha = 0.82 + r() * 0.18;
-        const x = g + i * (cw + g), y = g + j * (ch + g);
-        if (r() < 0.22) { ctx.beginPath(); ctx.arc(x + cw / 2, y + ch / 2, Math.min(cw, ch) / 2, 0, Math.PI * 2); ctx.fill(); }
-        else ctx.fillRect(x, y, cw, ch);
-      }
-      ctx.globalAlpha = 1;
-    } else if (art.kind === 'lines') {
-      ctx.lineCap = 'round';
-      const n = 70 + Math.floor(r() * 50), step = H / n;
-      for (let i = 0; i < n; i++) {
-        ctx.strokeStyle = ink(); ctx.globalAlpha = 0.45 + r() * 0.5; ctx.lineWidth = u * (0.12 + r() * 0.35);
-        const y0 = step * (i + 0.5), amp = u * (1 + r() * 4), f = (1 + r() * 2.5) * Math.PI * 2 / W, ph = r() * 6;
-        ctx.beginPath();
-        for (let x = W * 0.06, first = true; x <= W * 0.94; x += W / 90, first = false) {
-          const y = y0 + Math.sin(x * f + ph) * amp + Math.sin(x * f * 2.3 + ph * 1.7) * amp * 0.35;
-          if (first) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-    } else if (art.kind === 'bindu') {
-      const cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.44, rings = 7 + Math.floor(r() * 4);
-      for (let i = rings; i > 0; i--) { ctx.fillStyle = P[1 + (i % (P.length - 2))]; ctx.beginPath(); ctx.arc(cx, cy, R * i / rings, 0, Math.PI * 2); ctx.fill(); }
-      ctx.fillStyle = P[P.length - 1]; ctx.beginPath(); ctx.arc(cx, cy, R * 0.05, 0, Math.PI * 2); ctx.fill();
-    } else if (art.kind === 'arch') {
-      const n = 2 + Math.floor(r() * 2), g = W * 0.07, aw = (W - g * (n + 1)) / n, base = H * 0.9;
-      for (let i = 0; i < n; i++) {
-        const x = g + i * (aw + g), top = H * (0.14 + r() * 0.12);
-        for (let k = 0; k < 3; k++) { const ins = k * aw * 0.13; ctx.fillStyle = P[1 + ((i + k) % (P.length - 1))]; archPath(ctx, x + ins, top + ins, aw - 2 * ins, base - top - ins); ctx.fill(); }
-      }
-    }
-    // Paper and canvas tooth.
-    const grains = Math.round(W * H / 90);
-    for (let i = 0; i < grains; i++) { ctx.fillStyle = r() < 0.5 ? '#000' : '#fff'; ctx.globalAlpha = 0.035; ctx.fillRect(r() * W, r() * H, 1.2, 1.2); }
-    ctx.globalAlpha = 1;
-  }
-  const imgCache = new Map();
-  function artURL(w, longEdge) {
-    if (w.image) return w.image;
-    const key = w.id + '@' + longEdge;
-    if (imgCache.has(key)) return imgCache.get(key);
-    const ratio = w.w / w.h, c = document.createElement('canvas');
-    c.width = ratio >= 1 ? longEdge : Math.round(longEdge * ratio);
-    c.height = ratio >= 1 ? Math.round(longEdge / ratio) : longEdge;
-    paint(c.getContext('2d'), c.width, c.height, w.art || { kind: 'field', seed: 1, palette: ['#E6E0D2', '#888', '#555'] });
-    const url = c.toDataURL('image/jpeg', 0.88);
-    imgCache.set(key, url);
-    return url;
-  }
+  /* Images: a real photo when there is one, otherwise a drawn placeholder (art.js). */
+  const artURL = (w, longEdge) => window.WalkArt.url(w, longEdge);
 
   /* ---------- Formatting ---------- */
   const sizeText = w => `${w.h} × ${w.w} cm`;
@@ -163,10 +92,11 @@
   const statusText = w => ({ available: 'Available', sold: 'Sold', reserved: 'Reserved' })[w.status] || 'Available';
   const dotFor = w => w.status === 'sold' ? '<span class="dot" title="Sold"></span>' : (w.status === 'reserved' ? '<span class="dot half" title="Reserved"></span>' : '');
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
-  const workURL = w => location.origin + location.pathname + '#work=' + encodeURIComponent(w.id);
+  const workURL = w => location.origin + location.pathname + location.search + '#work=' + encodeURIComponent(w.id);
   function waLink(text) { return `https://wa.me/${(cfg.whatsapp || '').replace(/\D/g, '')}?text=${encodeURIComponent(text)}`; }
   function enquiryText(w) {
-    return `Hello ${cfg.name || ''}, I'm interested in "${w.title}" by ${w.artist} (${sizeText(w)}, ${w.year}). Is it available? ${workURL(w)}`;
+    const where = room ? ` from the private viewing "${room.title}"` : '';
+    return `Hello ${cfg.name || ''}, I'm interested in "${w.title}" by ${w.artist} (${sizeText(w)}, ${w.year})${where}. Is it available? ${workURL(w)}`;
   }
 
   /* ---------- Toast ---------- */
@@ -193,8 +123,46 @@
     if (cfg.instagram) links.push(`<a href="https://www.instagram.com/${esc(cfg.instagram)}/" target="_blank" rel="noopener">Instagram</a>`);
     $('#footLinks').innerHTML = links.join('');
     $('#barEnquire').href = waLink(`Hello ${cfg.name || ''}, I'd like to know more about your current exhibition.`);
+    if (roomState !== 'none') fillRoomPage();
     const bar = $('#bar');
     addEventListener('scroll', () => bar.classList.toggle('scrolled', scrollY > 8), { passive: true });
+  }
+
+  /* ---------- Private viewings ---------- */
+  const dateText = d => { const t = new Date(d + 'T12:00:00'); return isNaN(t) ? d : t.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }); };
+  function resolveRoom(all) {
+    if (live) return liveRoomWorks || all;   // the database already decided what this page may show
+    if (!roomSlug) { roomState = 'none'; return all.filter(w => w.public !== false); }
+    room = rooms.find(r => r.room === roomSlug) || null;
+    const inRoom = all.filter(w => (w.rooms || []).includes(roomSlug));
+    if (!room && !inRoom.length) { roomState = 'missing'; return []; }
+    room = room || { room: roomSlug, title: 'A private selection', for: '', message: '', expires: '' };
+    if (room.expires && new Date(room.expires + 'T23:59:59') < new Date()) { roomState = 'closed'; return []; }
+    roomState = 'open';
+    return inRoom;
+  }
+  function fillRoomPage() {
+    const meta = document.createElement('meta'); meta.name = 'robots'; meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    document.body.classList.add('is-room');
+    $('#brand').insertAdjacentHTML('afterend', '<span class="private-badge">Private viewing</span>');
+    const ask = waLink(`Hello ${cfg.name || ''}, I was sent a private viewing link (${roomSlug}). Could you share the works again?`);
+    if (roomState === 'open') {
+      document.title = `${room.title}, ${cfg.name || 'Gallery'}`;
+      $('#introWhere').textContent = room.for ? `${cfg.name}, for ${room.for}` : `${cfg.name}, private viewing`;
+      $('#showTitle').textContent = room.title;
+      $('#showDates').textContent = room.expires ? `Open until ${dateText(room.expires)}. Please don't share this link.` : `Please don't share this link.`;
+      $('#showLede').textContent = room.message || `${works.length} works chosen for you. Ask about any of them on WhatsApp.`;
+    } else {
+      document.title = `Private viewing, ${cfg.name || 'Gallery'}`;
+      $('#introWhere').textContent = `${cfg.name}, private viewing`;
+      $('#showTitle').textContent = roomState === 'closed' ? 'This viewing has closed' : 'This link isn\u2019t active';
+      $('#showDates').textContent = roomState === 'closed' && room.expires ? `It was open until ${dateText(room.expires)}.` : '';
+      $('#showLede').innerHTML = `Ask the gallery and they can send you a new link, or see what is on view now.
+        <span class="closed-actions"><a class="pill pill-solid" href="${ask}" target="_blank" rel="noopener">Ask on WhatsApp</a>
+        <a class="pill" href="${location.pathname}">See the current exhibition</a></span>`;
+      document.querySelectorAll('.wall-section, .works').forEach(el => { el.hidden = true; });
+    }
   }
 
   /* ---------- Saved ---------- */
@@ -416,6 +384,7 @@
     if (w.status === 'sold') { e.textContent = 'Ask about similar works'; e.href = waLink(`Hello ${cfg.name || ''}, "${w.title}" by ${w.artist} is sold. Do you have similar works by the artist? ${workURL(w)}`); }
     else { e.textContent = 'Ask on WhatsApp'; e.href = waLink(enquiryText(w)); }
     $('#vCount').textContent = `${cur + 1} of ${list.length}`;
+    logEvent(w, 'work_view');
     $('#vSave').setAttribute('aria-pressed', saved.has(w.id));
     $('#vSave').setAttribute('aria-label', saved.has(w.id) ? `Remove ${w.title} from saved` : `Save ${w.title}`);
     try { history.replaceState(null, '', '#work=' + encodeURIComponent(w.id)); } catch (err) { /* sandboxed */ }
@@ -738,12 +707,91 @@
           medium: get(r, 'medium'), w: Number(get(r, 'width_cm')) || 60, h: Number(get(r, 'height_cm')) || 80,
           price: price ? Number(price) : null, status: (get(r, 'status') || 'available').toLowerCase(),
           image: get(r, 'image_url') || null, note: get(r, 'description'),
+          public: !/^(no|false|0|hidden|private)$/i.test(get(r, 'public')),
+          rooms: get(r, 'rooms').toLowerCase().split(/[,\s]+/).filter(Boolean),
           art: { kind: ['field', 'arch', 'grid', 'lines', 'bindu'][i % 5], seed: i + 3, palette: PALETTES[i % PALETTES.length] }
         };
       });
     } catch (err) {
       toast('Could not load the artwork sheet. Showing sample works.');
     }
+  }
+  /* ---------- Data from the Walkthrough database (Supabase) ---------- */
+  const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
+  let live = null, liveRoomWorks = null;
+  const loadScript = src => new Promise((ok, fail) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
+  const fromRow = (r, i) => ({
+    id: r.id, title: r.title, artist: r.artist || '', year: r.year || '', medium: r.medium || '',
+    w: Number(r.width_cm) || 60, h: Number(r.height_cm) || 80,
+    price: r.price_inr == null ? null : Number(r.price_inr), status: r.status || 'available',
+    image: r.image_url || null, thumb: r.thumb_url || null, note: r.description || '', public: r.is_public !== false,
+    art: r.art || { kind: ['field', 'arch', 'grid', 'lines', 'bindu'][i % 5], seed: i + 3, palette: PALETTES[i % PALETTES.length] }
+  });
+  async function loadLive() {
+    if (!(cfg.supabaseUrl && cfg.supabaseKey && cfg.gallery)) return false;
+    try {
+      await loadScript(SUPABASE_JS);
+      live = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, { auth: { persistSession: false } });
+      const [g, w] = await Promise.all([
+        live.from('galleries').select('*').eq('slug', cfg.gallery).maybeSingle(),
+        live.from('works').select('*').eq('gallery', cfg.gallery).eq('is_public', true).order('sort_order').order('created_at')
+      ]);
+      if (w.error) throw w.error;
+      const gal = g.data;
+      if (gal) {
+        Object.assign(cfg, {
+          name: gal.name || cfg.name, city: gal.city || cfg.city, address: gal.address || cfg.address,
+          whatsapp: gal.whatsapp || cfg.whatsapp, email: gal.email || cfg.email, instagram: gal.instagram || cfg.instagram,
+          exhibition: { title: gal.exhibition_title || '', dates: gal.exhibition_dates || '', lede: gal.exhibition_lede || '' }
+        });
+      }
+      works = (w.data || []).map(fromRow);
+      if (roomSlug) {
+        const { data, error } = await live.rpc('open_room', { room_slug: roomSlug });
+        if (error) throw error;
+        roomState = data.state;
+        if (data.room) room = { room: roomSlug, title: data.room.title, for: data.room.for || '', message: data.room.message || '', expires: data.room.expires || '' };
+        liveRoomWorks = data.state === 'open' ? (data.works || []).map(fromRow) : [];
+      } else roomState = 'none';
+      return true;
+    } catch (err) {
+      live = null;
+      toast('Could not load the gallery. Showing sample works.');
+      return false;
+    }
+  }
+  // Demo mode: edits made in /admin without a database are kept in this browser; show them here too.
+  function loadDemoDb() {
+    if (cfg.sheetCsvUrl) return;
+    let db = null; try { db = JSON.parse(localStorage.getItem('walkthrough-demo-db')); } catch (e) { db = null; }
+    if (!db || !Array.isArray(db.works)) return;
+    const g = db.gallery || {};
+    Object.assign(cfg, { name: g.name || cfg.name, city: g.city || cfg.city, address: g.address || cfg.address, whatsapp: g.whatsapp || cfg.whatsapp,
+      email: g.email || cfg.email, instagram: g.instagram || cfg.instagram,
+      exhibition: { title: g.exhibition_title || '', dates: g.exhibition_dates || '', lede: g.exhibition_lede || '' } });
+    const rs = db.rooms || [];
+    works = db.works.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map((r, i) => ({ ...fromRow(r, i), rooms: rs.filter(x => (x.work_ids || []).includes(r.id)).map(x => x.slug) }));
+    rooms = rs.map(r => ({ room: r.slug, title: r.title, for: r.for_name || '', message: r.message || '', expires: r.expires || '' }));
+  }
+  const seen = new Set();
+  function logEvent(w, kind) {
+    if (!live || !w) return;
+    const key = kind + w.id; if (kind === 'work_view' && seen.has(key)) return; seen.add(key);
+    live.rpc('log_event', { gallery_slug: cfg.gallery, work: w.id, event_kind: kind, room_slug: roomSlug || null }).then(() => {}, () => {});
+  }
+
+  async function loadRooms() {
+    if (!cfg.roomsCsvUrl || !roomSlug) return;
+    try {
+      const res = await fetch(cfg.roomsCsvUrl); if (!res.ok) throw new Error(res.status);
+      const [head, ...body] = parseCSV(await res.text());
+      const col = n => head.findIndex(h => h.trim().toLowerCase() === n);
+      const get = (r, n) => { const i = col(n); return i < 0 ? '' : (r[i] || '').trim(); };
+      rooms = body.filter(r => get(r, 'room')).map(r => ({
+        room: get(r, 'room').toLowerCase(), title: get(r, 'title') || 'A private selection',
+        for: get(r, 'for'), message: get(r, 'message'), expires: get(r, 'expires')
+      }));
+    } catch (err) { /* rooms tab is optional; works tagged with the room still show */ }
   }
 
   /* ---------- Events ---------- */
@@ -766,6 +814,7 @@
     $('#vClose').addEventListener('click', () => closeViewer(0));
     $('#vSave').addEventListener('click', () => toggleSaved(list[cur].id));
     $('#sWall').addEventListener('click', openRoom);
+    $('#sEnquire').addEventListener('click', () => logEvent(list[cur], 'enquire'));
     $('#roomClose').addEventListener('click', () => closeRoom());
     $('#sShare').addEventListener('click', async () => {
       const w = list[cur], url = workURL(w);
@@ -801,8 +850,9 @@
 
   /* ---------- Start ---------- */
   async function start() {
+    if (!(await loadLive())) { loadDemoDb(); await Promise.all([loadSheet(), loadRooms()]); }
+    works = resolveRoom(works);
     fillPage();
-    await loadSheet();
     renderGrid(); renderWall(); bindWallDrag(); bind(); syncSaved();
     openFromHash();
     addEventListener('hashchange', openFromHash);
