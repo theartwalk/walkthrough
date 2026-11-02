@@ -12,9 +12,9 @@ window.GALLERY = {
   // Walkthrough database (admin dashboard). Fill all three to go live; see README.
   // When these are set, the site reads works and gallery details from the database
   // and the Sheet settings below are ignored.
-  supabaseUrl: '',         // e.g. 'https://abcdefgh.supabase.co'
-  supabaseKey: '',         // the project's "anon public" key (safe to publish)
-  gallery: '',             // the gallery's slug from add-gallery.sql, e.g. 'dhoomimal'
+     supabaseUrl: 'https://esqeqrfchnyfxnoxluxc.supabase.co',
+     supabaseKey: 'PASTE-YOUR-KEY-HERE',
+     gallery: 'demo',
 
   slug: 'demo',
   name: 'Demo Gallery',
