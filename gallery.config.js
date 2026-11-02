@@ -13,7 +13,7 @@ window.GALLERY = {
   // When these are set, the site reads works and gallery details from the database
   // and the Sheet settings below are ignored.
      supabaseUrl: 'https://esqeqrfchnyfxnoxluxc.supabase.co',
-     supabaseKey: 'PASTE-YOUR-KEY-HERE',
+     supabaseKey: 'sb_publishable_ZjOonBF_t6z1UxrtOmSYnw_IoB5INjS',
      gallery: 'demo',
 
   slug: 'demo',
